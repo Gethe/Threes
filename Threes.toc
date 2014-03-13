@@ -1,0 +1,7 @@
+## Interface: 50400
+## Title: Threes!
+## Notes: A clone of the mobile game Threes!
+## Author: Gethe88
+## Version: @project-version@
+
+Threes.lua
