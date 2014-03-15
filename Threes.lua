@@ -2,8 +2,10 @@ local NAME, db = ...
 Threes = db
 --TODO
   --Pause button
+  --fade tile in <direction> OnHide
 
 local inProgress = false
+local moves = false
 
 local tileMap = {
     "1_1",
@@ -53,8 +55,14 @@ Threes.frame:SetScript("OnShow", function ( self )
     end
 end)
 
+Threes.nextTile = CreateFrame("Button", nil, Threes.frame, "UIPanelButtonTemplate")
+Threes.nextTile:SetSize(40, 60)
+Threes.nextTile:EnableMouse(false)
+Threes.nextTile:SetPoint("BOTTOMRIGHT", -5, 5)
+
 Threes.newGameBtn = CreateFrame("Button", nil, Threes.frame, "UIPanelButtonTemplate")
 Threes.newGameBtn:SetText("New Game")
+Threes.newGameBtn:SetSize(50, 22)
 Threes.newGameBtn:SetPoint("BOTTOMLEFT", 5, 5)
 Threes.newGameBtn:SetScript("OnClick", function ( ... )
     Threes:newGame()
@@ -90,6 +98,7 @@ end
 
 --Key press events
 function Threes:UP()
+    moves = false
     for col = 1, 4 do
         for row = 1, 4 do
             local nextRow = row - 1
@@ -98,8 +107,29 @@ function Threes:UP()
             Threes:calcMove(tile, row, nextTile, nextRow, (nextRow >= 1))
         end
     end
+    if moves then
+        local numTiles = 0
+        for i = 1, 8 do
+            local rand = fastrandom(1, 4)
+            local newTile = Threes["tile_"..rand.."_4"]
+            if not newTile:IsShown() then
+                newTile:Show()
+                local r, g, b = Threes.nextTile.Right:GetVertexColor()
+                newTile:SetText(Threes.nextTile:GetText())
+                newTile.Left:SetVertexColor(r, g, b)
+                newTile.Right:SetVertexColor(r, g, b)
+                newTile.Middle:SetVertexColor(r, g, b)
+                numTiles = numTiles + 1
+            end
+            if numTiles == 1 then
+                break
+            end
+        end
+        Threes:createTile(Threes.nextTile)
+    end
 end
 function Threes:DOWN()
+    moves = false
     for col = 1, 4 do
         for row = 4, 1, -1 do
             local nextRow = row + 1
@@ -108,8 +138,29 @@ function Threes:DOWN()
             Threes:calcMove(tile, row, nextTile, nextRow, (nextRow <= 4))
         end
     end
+    if moves then
+        local numTiles = 0
+        for i = 1, 8 do
+            local rand = fastrandom(1, 4)
+            local newTile = Threes["tile_"..rand.."_1"]
+            if not newTile:IsShown() then
+                newTile:Show()
+                local r, g, b = Threes.nextTile.Right:GetVertexColor()
+                newTile:SetText(Threes.nextTile:GetText())
+                newTile.Left:SetVertexColor(r, g, b)
+                newTile.Right:SetVertexColor(r, g, b)
+                newTile.Middle:SetVertexColor(r, g, b)
+                numTiles = numTiles + 1
+            end
+            if numTiles == 1 then
+                break
+            end
+        end
+        Threes:createTile(Threes.nextTile)
+    end
 end
 function Threes:LEFT()
+    moves = false
     for row = 1, 4 do
         for col = 1, 4 do
             local nextCol = col - 1
@@ -118,8 +169,29 @@ function Threes:LEFT()
             Threes:calcMove(tile, col, nextTile, nextCol, (nextCol >= 1))
         end
     end
+    if moves then
+        local numTiles = 0
+        for i = 1, 8 do
+            local rand = fastrandom(1, 4)
+            local newTile = Threes["tile_4_"..rand]
+            if not newTile:IsShown() then
+                newTile:Show()
+                local r, g, b = Threes.nextTile.Right:GetVertexColor()
+                newTile:SetText(Threes.nextTile:GetText())
+                newTile.Left:SetVertexColor(r, g, b)
+                newTile.Right:SetVertexColor(r, g, b)
+                newTile.Middle:SetVertexColor(r, g, b)
+                numTiles = numTiles + 1
+            end
+            if numTiles == 1 then
+                break
+            end
+        end
+        Threes:createTile(Threes.nextTile)
+    end
 end
 function Threes:RIGHT()
+    moves = false
     for row = 1, 4 do
         for col = 4, 1, -1 do
             local nextCol = col + 1
@@ -127,6 +199,26 @@ function Threes:RIGHT()
             local nextTile = Threes["tile_"..nextCol.."_"..row]
             Threes:calcMove(tile, col, nextTile, nextCol, (nextCol <= 4))
         end
+    end
+    if moves then
+        local numTiles = 0
+        for i = 1, 8 do
+            local rand = fastrandom(1, 4)
+            local newTile = Threes["tile_1_"..rand]
+            if not newTile:IsShown() then
+                newTile:Show()
+                local r, g, b = Threes.nextTile.Right:GetVertexColor()
+                newTile:SetText(Threes.nextTile:GetText())
+                newTile.Left:SetVertexColor(r, g, b)
+                newTile.Right:SetVertexColor(r, g, b)
+                newTile.Middle:SetVertexColor(r, g, b)
+                numTiles = numTiles + 1
+            end
+            if numTiles == 1 then
+                break
+            end
+        end
+        Threes:createTile(Threes.nextTile)
     end
 end
 
@@ -154,6 +246,7 @@ function Threes:calcMove(tile, line, nextTile, nextLine, notBorder)
                     nextTile.Left:SetVertexColor(r, g, b)
                     nextTile.Right:SetVertexColor(r, g, b)
                     nextTile.Middle:SetVertexColor(r, g, b)
+                    moves = true
                 elseif isPushable[nextLine] then
                     print("no push")
                     --tile is against a border tile, dont move it
@@ -168,6 +261,7 @@ function Threes:calcMove(tile, line, nextTile, nextLine, notBorder)
                 nextTile.Right:SetVertexColor(r, g, b)
                 nextTile.Middle:SetVertexColor(r, g, b)
                 tile:Hide()
+                moves = true
             end
         else
             print("border")
@@ -196,6 +290,26 @@ function Threes:canCombine(tile, nextTile)
     end
 end
 
+function Threes:createTile(tile)
+    local randNum = fastrandom(-1, 2)
+    if randNum == -1 then
+        tile:SetText("1")
+        tile.Left:SetVertexColor(0.5, 0.5, 1)
+        tile.Right:SetVertexColor(0.5, 0.5, 1)
+        tile.Middle:SetVertexColor(0.5, 0.5, 1)
+    elseif randNum == 0 then
+        tile:SetText("2")
+        tile.Left:SetVertexColor(1, 0.5, 0.5)
+        tile.Right:SetVertexColor(1, 0.5, 0.5)
+        tile.Middle:SetVertexColor(1, 0.5, 0.5)
+    else
+        tile:SetText(randNum * 3)
+        tile.Left:SetVertexColor(0.5, 0.5, 0.5)
+        tile.Right:SetVertexColor(0.5, 0.5, 0.5)
+        tile.Middle:SetVertexColor(0.5, 0.5, 0.5)
+    end
+end
+
 function Threes:clear()
     for i = 1, 16 do
         local coord = tileMap[i]
@@ -211,29 +325,14 @@ function Threes:newGame()
         --print(tileMap[randTile])
         if not self["tile_"..coord]:IsShown() then
             self["tile_"..coord]:Show()
-            local randNum = fastrandom(-1, 2)
-            if randNum == -1 then
-                self["tile_"..coord]:SetText("1")
-                self["tile_"..coord].Left:SetVertexColor(0.5, 0.5, 1)
-                self["tile_"..coord].Right:SetVertexColor(0.5, 0.5, 1)
-                self["tile_"..coord].Middle:SetVertexColor(0.5, 0.5, 1)
-            elseif randNum == 0 then
-                self["tile_"..coord]:SetText("2")
-                self["tile_"..coord].Left:SetVertexColor(1, 0.5, 0.5)
-                self["tile_"..coord].Right:SetVertexColor(1, 0.5, 0.5)
-                self["tile_"..coord].Middle:SetVertexColor(1, 0.5, 0.5)
-            else
-                self["tile_"..coord]:SetText(randNum * 3)
-                self["tile_"..coord].Left:SetVertexColor(0.5, 0.5, 0.5)
-                self["tile_"..coord].Right:SetVertexColor(0.5, 0.5, 0.5)
-                self["tile_"..coord].Middle:SetVertexColor(0.5, 0.5, 0.5)
-            end
+            Threes:createTile(self["tile_"..coord])
             numTiles = numTiles + 1
         end
         if numTiles == 8 then
             break
         end
     end
+    Threes:createTile(Threes.nextTile)
 end
 
 -- Slash Commands
