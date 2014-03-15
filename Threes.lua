@@ -92,78 +92,20 @@ end
 function Threes:UP()
     for col = 1, 4 do
         for row = 1, 4 do
-            local isPushable = {
-                false,
-                true,
-                true,
-                true,
-            }
             local nextRow = row - 1
             local tile = Threes["tile_"..col.."_"..row]
             local nextTile = Threes["tile_"..col.."_"..nextRow]
-            if tile:IsShown() and (nextRow >= 1) then
-                local text = Threes:canCombine(tile, nextTile)
-                local r, g, b = tile.Right:GetVertexColor()
-                tile:Hide()
-                print(text)
-
-                if nextTile:IsShown() and isPushable[nextRow] then
-                    isPushable[row] = false
-                    if text then
-                        tile:Hide()
-                        nextTile:SetText(text)
-                        nextTile.Left:SetVertexColor(r, g, b)
-                        nextTile.Right:SetVertexColor(r, g, b)
-                        nextTile.Middle:SetVertexColor(r, g, b)
-                    else
-                        nextTile:Show()
-                        nextTile:SetText(tile:GetText())
-                        nextTile.Left:SetVertexColor(r, g, b)
-                        nextTile.Right:SetVertexColor(r, g, b)
-                        nextTile.Middle:SetVertexColor(r, g, b)
-                        tile:Hide()
-                    end
-                end
-            end
+            Threes:calcMove(tile, row, nextTile, nextRow, (nextRow >= 1))
         end
     end
 end
 function Threes:DOWN()
     for col = 1, 4 do
         for row = 4, 1, -1 do
-            local isPushable = {
-                false,
-                true,
-                true,
-                true,
-            }
             local nextRow = row + 1
             local tile = Threes["tile_"..col.."_"..row]
             local nextTile = Threes["tile_"..col.."_"..nextRow]
-            if tile:IsShown() and (nextRow <= 4) then
-                local text = Threes:canCombine(tile, nextTile)
-                local r, g, b = tile.Right:GetVertexColor()
-                tile:Hide()
-                print(text)
-
-                if nextTile:IsShown() and isPushable[nextRow] then
-                    isPushable[row] = false
-                    if text then
-                        tile:Hide()
-                        nextTile:SetText(text)
-                        nextTile.Left:SetVertexColor(r, g, b)
-                        nextTile.Right:SetVertexColor(r, g, b)
-                        nextTile.Middle:SetVertexColor(r, g, b)
-                    else
-                        nextTile:Show()
-                        nextTile:SetText(tile:GetText())
-                        nextTile.Left:SetVertexColor(r, g, b)
-                        nextTile.Right:SetVertexColor(r, g, b)
-                        nextTile.Middle:SetVertexColor(r, g, b)
-                        tile:Hide()
-                    end
-                end
-            end
+            Threes:calcMove(tile, row, nextTile, nextRow, (nextRow <= 4))
         end
     end
 end
@@ -173,87 +115,23 @@ function Threes:LEFT()
             local nextCol = col - 1
             local tile = Threes["tile_"..col.."_"..row]
             local nextTile = Threes["tile_"..nextCol.."_"..row]
-            print("-------")
-            if tile:IsShown() then
-                if (nextCol >= 1) then
-                    local text = Threes:canCombine(tile, nextTile)
-                    local r, g, b = tile.Right:GetVertexColor()
-                    print(text)
-                    
-                    if nextTile:IsShown() then
-                        if text then
-                            print("combine")
-                            --combine tile
-                            tile:Hide()
-                            nextTile:SetText(text)
-                            nextTile.Left:SetVertexColor(r, g, b)
-                            nextTile.Right:SetVertexColor(r, g, b)
-                            nextTile.Middle:SetVertexColor(r, g, b)
-                        elseif isPushable[nextCol] then
-                            print("no push")
-                            --tile is against a border tile, dont move it
-                            isPushable[col] = false
-                        end
-                    else
-                        print("move")
-                        --move tile
-                        nextTile:Show()
-                        nextTile:SetText(tile:GetText())
-                        nextTile.Left:SetVertexColor(r, g, b)
-                        nextTile.Right:SetVertexColor(r, g, b)
-                        nextTile.Middle:SetVertexColor(r, g, b)
-                        tile:Hide()
-                    end
-                else
-                    print("border")
-                    --tile is at a border, dont move it
-                    isPushable[col] = false
-                end
-            end
+            Threes:calcMove(tile, col, nextTile, nextCol, (nextCol >= 1))
         end
     end
 end
 function Threes:RIGHT()
     for row = 1, 4 do
         for col = 4, 1, -1 do
-            local isPushable = {
-                false,
-                true,
-                true,
-                true,
-            }
             local nextCol = col + 1
             local tile = Threes["tile_"..col.."_"..row]
             local nextTile = Threes["tile_"..nextCol.."_"..row]
-            if tile:IsShown() and (nextCol <= 4) then
-                local text = Threes:canCombine(tile, nextTile)
-                local r, g, b = tile.Right:GetVertexColor()
-                print(text)
-
-                if nextTile:IsShown() and isPushable[nextCol] then
-                    isPushable[col] = false
-                    if text then
-                        tile:Hide()
-                        nextTile:SetText(text)
-                        nextTile.Left:SetVertexColor(r, g, b)
-                        nextTile.Right:SetVertexColor(r, g, b)
-                        nextTile.Middle:SetVertexColor(r, g, b)
-                    else
-                        nextTile:Show()
-                        nextTile:SetText(tile:GetText())
-                        nextTile.Left:SetVertexColor(r, g, b)
-                        nextTile.Right:SetVertexColor(r, g, b)
-                        nextTile.Middle:SetVertexColor(r, g, b)
-                        tile:Hide()
-                    end
-                end
-            end
+            Threes:calcMove(tile, col, nextTile, nextCol, (nextCol <= 4))
         end
     end
 end
 
 local isPushable = {}
-function Threes:calcMove(tile, line, nextTile, nextLine) 
+function Threes:calcMove(tile, line, nextTile, nextLine, notBorder)
     print("-------")
     isPushable = {
         true,
@@ -262,7 +140,7 @@ function Threes:calcMove(tile, line, nextTile, nextLine)
         true,
     }
     if tile:IsShown() then
-        if (nextLine >= 1) then
+        if notBorder then
             local text = Threes:canCombine(tile, nextTile)
             local r, g, b = tile.Right:GetVertexColor()
             print(text)
@@ -297,7 +175,6 @@ function Threes:calcMove(tile, line, nextTile, nextLine)
             isPushable[line] = false
         end
     end
-
 end
 
 function Threes:canCombine(tile, nextTile)
