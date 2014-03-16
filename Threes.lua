@@ -2,7 +2,6 @@ local NAME, db = ...
 Threes = db
 --TODO
   --Pause button
-  --tileText = 3 * (2 ^ rank - 1)
   --scorePerTile = 3 ^ rank
   --fade tile in <direction> OnHide
 

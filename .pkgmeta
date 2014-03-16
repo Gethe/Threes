@@ -1,3 +1,11 @@
 ignore:
-    - Media/*.png
-    - Media/*.png
+    - Media/Frame.png
+    - Media/newGame.png
+    - Media/newGamePressed.png
+    - Media/tile.png
+    - Media/tilePreview.png
+    - Media/Frame.psd
+    - Media/newGame.psd
+    - Media/newGamePressed.psd
+    - Media/tile.psd
+    - Media/tilePreview.psd
