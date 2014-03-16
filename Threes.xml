@@ -1,0 +1,38 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\..\FrameXML\UI.xsd">
+    <Font name="ThreesFontLarge" font="Interface\AddOns\Threes\Media\PoetsenOne-Regular.TTF" virtual="true">
+        <Color r="0" g="0" b="0"/>
+        <FontHeight>
+            <AbsValue val="22"/>
+        </FontHeight>
+    </Font> 
+    <Font name="ThreesFontSmall" font="Interface\AddOns\Threes\Media\PoetsenOne-Regular.TTF" virtual="true">
+        <Color r="0" g="0" b="0"/>
+        <FontHeight>
+            <AbsValue val="14"/>
+        </FontHeight>
+    </Font> 
+    <Button name="ThreesButtonTemplate" virtual="true">
+        <Scripts>
+            <OnLoad>
+                self.texture:SetTexCoord(0, 0.625, 0, 0.84375)
+                self.pressed:SetTexCoord(0, 0.625, 0, 0.84375)
+            </OnLoad>
+        </Scripts>
+        <ButtonText parentKey="text"/>
+        <NormalFont style="ThreesFontSmall"/>
+        <NormalTexture parentKey="texture" file="Interface\AddOns\Threes\Media\newGame"/>
+        <PushedTexture parentKey="pressed" file="Interface\AddOns\Threes\Media\newGamePressed"/>
+    </Button>
+    <Button name="ThreesTileTemplate" virtual="true">
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture parentKey="texture" setAllPoints="true" file="Interface\AddOns\Threes\Media\tile">
+                    <TexCoords left="0" right="0.625" top="0" bottom="0.984375"/>
+                </Texture>
+            </Layer>
+        </Layers>
+        <ButtonText parentKey="text"/>
+        <NormalFont style="ThreesFontLarge"/>
+    </Button>
+</Ui>
