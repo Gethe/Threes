@@ -1,12 +1,16 @@
 local NAME, db = ...
 Threes = db
+
+
 --TODO
   --Pause button
-  --scorePerTile = 3 ^ rank
   --fade tile in <direction> OnHide
+    --http://www.wowinterface.com/forums/showthread.php?p=291558#post291558
 
 local inProgress = false
 local moves = false
+local score = 0
+local isPushable = {}
 
 local tileMap = {
     "1_1",
@@ -92,6 +96,7 @@ Threes.closeBtn:SetScript("OnLeave", function (self)
     self.texture:SetVertexColor(.9, 0.3, 0.3)
 end)
 Threes.closeBtn:SetScript("OnClick", function (self)
+    Threes:saveGame()
     Threes.frame:Hide()
 end)
 
@@ -101,6 +106,7 @@ Threes.nextTile.texture:SetTexCoord(0, 0.625, 0, 1)
 Threes.nextTile:SetPoint("TOPRIGHT", Threes.frame, "TOPLEFT", -4, -4)
 Threes.nextTile:SetSize(40, 64)
 Threes.nextTile:EnableMouse(false)
+Threes.nextTile.text:Hide()
 
 for row = 1, 4 do
     for col = 1, 4 do
@@ -151,7 +157,13 @@ function Threes:UP()
                 break
             end
         end
-        Threes:setupTile(Threes.nextTile)
+        Threes:setupTile(Threes.nextTile, nil, true)
+        if Threes.nextTile.rank > 1 then
+            Threes.nextTile.text:Show()
+            Threes.nextTile.text:SetText("+")
+        else
+            Threes.nextTile.text:Hide()
+        end
     end
 end
 function Threes:DOWN()
@@ -178,7 +190,13 @@ function Threes:DOWN()
                 break
             end
         end
-        Threes:setupTile(Threes.nextTile)
+        Threes:setupTile(Threes.nextTile, nil, true)
+        if Threes.nextTile.rank > 1 then
+            Threes.nextTile.text:Show()
+            Threes.nextTile.text:SetText("+")
+        else
+            Threes.nextTile.text:Hide()
+        end
     end
 end
 function Threes:LEFT()
@@ -205,7 +223,13 @@ function Threes:LEFT()
                 break
             end
         end
-        Threes:setupTile(Threes.nextTile)
+        Threes:setupTile(Threes.nextTile, nil, true)
+        if Threes.nextTile.rank > 1 then
+            Threes.nextTile.text:Show()
+            Threes.nextTile.text:SetText("+")
+        else
+            Threes.nextTile.text:Hide()
+        end
     end
 end
 function Threes:RIGHT()
@@ -223,7 +247,7 @@ function Threes:RIGHT()
         for i = 1, 8 do
             local rand = fastrandom(1, 4)
             local newTile = Threes["tile_1_"..rand]
-            if not newTile:IsShown() then
+            if not newTile:IsShown() and isPushable[rand] then
                 newTile:Show()
                 Threes:setupTile(newTile, Threes.nextTile.rank)
                 numTiles = numTiles + 1
@@ -232,11 +256,16 @@ function Threes:RIGHT()
                 break
             end
         end
-        Threes:setupTile(Threes.nextTile)
+        Threes:setupTile(Threes.nextTile, nil, true)
+        if Threes.nextTile.rank > 1 then
+            Threes.nextTile.text:Show()
+            Threes.nextTile.text:SetText("+")
+        else
+            Threes.nextTile.text:Hide()
+        end
     end
 end
 
-local isPushable = {}
 function Threes:calcMove(tile, line, nextTile, nextLine, notBorder)
     print("-------")
     isPushable = {
@@ -282,7 +311,6 @@ function Threes:calcMove(tile, line, nextTile, nextLine, notBorder)
         end
     end
 end
-
 function Threes:canCombine(tile, nextTile)
     local txt = tonumber(tile:GetText()) 
     local nextTxt = tonumber(nextTile:GetText())
@@ -302,10 +330,14 @@ function Threes:canCombine(tile, nextTile)
     end
 end
 
-function Threes:setupTile(tile, rank)
+function Threes:setupTile(tile, rank, doPlus)
     print("Setup:", rank)
-    if not rank then rank = fastrandom(-1, 2) end
-    tile.rank = rank
+    if (not doPlus) and (rank > 1) then
+        rank = fastrandom(-1, 1)
+    else
+        if not rank then rank = fastrandom(-1, 2) end
+        if rank == 2 then rank = fastrandom(-1, 3) end
+    end
     if rank == -1 then
         tile:SetText("1")
         tile.texture:SetVertexColor(.2, .2, .8)
@@ -319,6 +351,17 @@ function Threes:setupTile(tile, rank)
         tile.texture:SetVertexColor(.9, .9, .9)
         tile.text:SetVertexColor(0, 0, 0)
     end
+    tile.rank = rank
+end
+
+function Threes:calcScore()
+    score = 0
+    for i = 1, 16 do
+        local rank = self["tile_"..tileMap[i]].rank
+        if rank > 0 then
+            score = score + (3 ^ rank)
+        end
+    end
 end
 
 function Threes:clear()
@@ -329,6 +372,7 @@ function Threes:clear()
 end
 function Threes:newGame()
     self:clear()
+    score = 0
     local numTiles = 0
     for i = 1, 16 do
         local randTile = fastrandom(1, 16)
@@ -336,19 +380,30 @@ function Threes:newGame()
         --print(tileMap[randTile])
         if not self["tile_"..coord]:IsShown() then
             self["tile_"..coord]:Show()
-            self:setupTile(self["tile_"..coord])
+            self:setupTile(self["tile_"..coord], math.floor((numTiles / 2) - 1, 1), false)
             numTiles = numTiles + 1
         end
-        if numTiles == 8 then
+
+        if numTiles == 9 then
             break
         end
     end
-    self:setupTile(Threes.nextTile)
+    self:setupTile(Threes.nextTile, nil, true)
+    if Threes.nextTile.rank > 1 then
+        Threes.nextTile.text:Show()
+        Threes.nextTile.text:SetText("+")
+    else
+        Threes.nextTile.text:Hide()
+    end
+end
+
+function Threes:saveGame()
 end
 
 -- Slash Commands
 SLASH_THREES1 = "/threes"
 function SlashCmdList.THREES(msg, editBox)
     print("msg:", msg)
+    ThreesDB = ThreesDB or {}
     Threes.frame:Show()
 end

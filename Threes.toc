@@ -3,6 +3,7 @@
 ## Notes: A clone of the mobile game Threes!
 ## Author: Gethe88
 ## Version: @project-version@
+## SavedVariables: ThreesDB
 
 Threes.xml
 Threes.lua
