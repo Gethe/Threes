@@ -82,6 +82,10 @@ Threes.newGameBtn:SetScript("OnClick", function ( ... )
     inProgress = false
 end)
 
+Threes.scoreText = Threes.frame:CreateFontString(nil, "ARTWORK", "ThreesFontLarge")
+Threes.scoreText:SetPoint("BOTTOM", Threes.frame, "TOP", 0, 6)
+Threes.scoreText:SetVertexColor(.8, .8, .8)
+
 Threes.closeBtn = CreateFrame("Button", nil, Threes.frame, "ThreesButtonTemplate")
 Threes.closeBtn:SetText("Close")
 Threes.closeBtn:SetSize(80, 27)
@@ -157,7 +161,7 @@ function Threes:UP()
                 break
             end
         end
-        Threes:setupTile(Threes.nextTile, nil, true)
+        Threes:setupTile(Threes.nextTile)
         if Threes.nextTile.rank > 1 then
             Threes.nextTile.text:Show()
             Threes.nextTile.text:SetText("+")
@@ -165,6 +169,7 @@ function Threes:UP()
             Threes.nextTile.text:Hide()
         end
     end
+    Threes:calcScore()
 end
 function Threes:DOWN()
     moves = false
@@ -190,7 +195,7 @@ function Threes:DOWN()
                 break
             end
         end
-        Threes:setupTile(Threes.nextTile, nil, true)
+        Threes:setupTile(Threes.nextTile)
         if Threes.nextTile.rank > 1 then
             Threes.nextTile.text:Show()
             Threes.nextTile.text:SetText("+")
@@ -198,6 +203,7 @@ function Threes:DOWN()
             Threes.nextTile.text:Hide()
         end
     end
+    Threes:calcScore()
 end
 function Threes:LEFT()
     moves = false
@@ -223,7 +229,7 @@ function Threes:LEFT()
                 break
             end
         end
-        Threes:setupTile(Threes.nextTile, nil, true)
+        Threes:setupTile(Threes.nextTile)
         if Threes.nextTile.rank > 1 then
             Threes.nextTile.text:Show()
             Threes.nextTile.text:SetText("+")
@@ -231,6 +237,7 @@ function Threes:LEFT()
             Threes.nextTile.text:Hide()
         end
     end
+    Threes:calcScore()
 end
 function Threes:RIGHT()
     moves = false
@@ -256,7 +263,7 @@ function Threes:RIGHT()
                 break
             end
         end
-        Threes:setupTile(Threes.nextTile, nil, true)
+        Threes:setupTile(Threes.nextTile)
         if Threes.nextTile.rank > 1 then
             Threes.nextTile.text:Show()
             Threes.nextTile.text:SetText("+")
@@ -264,6 +271,7 @@ function Threes:RIGHT()
             Threes.nextTile.text:Hide()
         end
     end
+    Threes:calcScore()
 end
 
 function Threes:calcMove(tile, line, nextTile, nextLine, notBorder)
@@ -330,14 +338,18 @@ function Threes:canCombine(tile, nextTile)
     end
 end
 
-function Threes:setupTile(tile, rank, doPlus)
-    print("Setup:", rank)
-    if (not doPlus) and (rank > 1) then
+function Threes:setupTile(tile, rank, newGame)
+    print("Setup:", rank, newGame)
+    if (newGame) and (rank > 1) then
         rank = fastrandom(-1, 1)
-    else
-        if not rank then rank = fastrandom(-1, 2) end
-        if rank == 2 then rank = fastrandom(-1, 3) end
+    elseif (not rank) then
+        rank = fastrandom(-1, 2) 
+        if rank == 2 then 
+            rank = fastrandom(-1, 3)
+        end
     end
+    print("Rank:", rank)
+    tile.rank = rank
     if rank == -1 then
         tile:SetText("1")
         tile.texture:SetVertexColor(.2, .2, .8)
@@ -351,17 +363,23 @@ function Threes:setupTile(tile, rank, doPlus)
         tile.texture:SetVertexColor(.9, .9, .9)
         tile.text:SetVertexColor(0, 0, 0)
     end
-    tile.rank = rank
 end
 
 function Threes:calcScore()
+    print("calcScore")
     score = 0
     for i = 1, 16 do
         local rank = self["tile_"..tileMap[i]].rank
+        print("stats:", rank, score)
         if rank > 0 then
             score = score + (3 ^ rank)
         end
     end
+    if score > ThreesDB.scoreMax then
+        ThreesDB.scoreMax = score
+    end
+
+    Threes.scoreText:SetText(score)
 end
 
 function Threes:clear()
@@ -372,32 +390,48 @@ function Threes:clear()
 end
 function Threes:newGame()
     self:clear()
-    score = 0
     local numTiles = 0
-    for i = 1, 16 do
-        local randTile = fastrandom(1, 16)
-        local coord = tileMap[randTile]
-        --print(tileMap[randTile])
-        if not self["tile_"..coord]:IsShown() then
-            self["tile_"..coord]:Show()
-            self:setupTile(self["tile_"..coord], math.floor((numTiles / 2) - 1, 1), false)
-            numTiles = numTiles + 1
+    if ThreesDB.currGame then
+        for i = 1, 16 do
+            self:setupTile(self["tile_"..tileMap[i]], ThreesDB.currGame[i].rank)
+            if ThreesDB.currGame[i].isShown then 
+                self["tile_"..tileMap[i]]:Show()
+            end
         end
+        ThreesDB.currGame = nil
+    else
+        for i = 1, 16 do
+            local randTile = fastrandom(1, 16)
+            local coord = tileMap[randTile]
+            --print(tileMap[randTile])
+            if not self["tile_"..coord]:IsShown() then
+                self["tile_"..coord]:Show()
+                self:setupTile(self["tile_"..coord], math.floor((numTiles / 2) - 1, 1), true)
+                numTiles = numTiles + 1
+            end
 
-        if numTiles == 9 then
-            break
+            if numTiles == 9 then
+                break
+            end
         end
     end
-    self:setupTile(Threes.nextTile, nil, true)
+    self:setupTile(Threes.nextTile)
     if Threes.nextTile.rank > 1 then
         Threes.nextTile.text:Show()
         Threes.nextTile.text:SetText("+")
     else
         Threes.nextTile.text:Hide()
     end
+    Threes:calcScore()
 end
 
 function Threes:saveGame()
+    print("saveGame")
+    ThreesDB.currGame = {}
+    for i = 1, 16 do
+        ThreesDB.currGame[i] = self["tile_"..tileMap[i]]
+        ThreesDB.currGame[i].isShown = self["tile_"..tileMap[i]]:IsShown()
+    end
 end
 
 -- Slash Commands
@@ -405,5 +439,6 @@ SLASH_THREES1 = "/threes"
 function SlashCmdList.THREES(msg, editBox)
     print("msg:", msg)
     ThreesDB = ThreesDB or {}
+    ThreesDB.scoreMax = ThreesDB.scoreMax or 0
     Threes.frame:Show()
 end
