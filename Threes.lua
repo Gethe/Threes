@@ -7,10 +7,10 @@ Threes = db
   --fade tile in <direction> OnHide
     --http://www.wowinterface.com/forums/showthread.php?p=291558#post291558
 
-local inProgress = false
 local moves = false
 local score = 0
 local isPushable = {}
+local tileCount = {}
 
 local tileMap = {
     "1_1",
@@ -31,86 +31,146 @@ local tileMap = {
     "4_4",
 }
 
-Threes.frame = CreateFrame("Frame", nil, UIParent)
-local frameBG = Threes.frame:CreateTexture(nil, "BACKGROUND")
-frameBG:SetTexture("Interface\\AddOns\\Threes\\Media\\Frame")
-frameBG:SetTexCoord(0, 0.6875, 0, 1)
-frameBG:SetAllPoints(Threes.frame)
-Threes.frame:SetSize(352, 512)
-Threes.frame:SetPoint("CENTER")
-Threes.frame:Hide()
-
-Threes.frame:EnableMouse(true)
-Threes.frame:SetMovable(true)
-Threes.frame:RegisterForDrag("LeftButton")
-Threes.frame:SetScript("OnDragStart", Threes.frame.StartMoving)
-Threes.frame:SetScript("OnDragStop", Threes.frame.StopMovingOrSizing)
-Threes.frame:SetScript("OnKeyDown", function (self, key )
-    print(key)
-    if (key == "UP") or (key == "DOWN") or (key == "LEFT") or (key == "RIGHT") then
-        Threes[key]()
-    end
-    inProgress = true
-end)
-Threes.frame:SetScript("OnEnter", function (self)
-    self:EnableKeyboard(true)
-end)
-Threes.frame:SetScript("OnLeave", function (self)
-    self:EnableKeyboard(false)
-end)
-Threes.frame:SetScript("OnShow", function ( self )
-    if not inProgress then
-        Threes:newGame()
-    end
-end)
-
-Threes.newGameBtn = CreateFrame("Button", nil, Threes.frame, "ThreesButtonTemplate")
-Threes.newGameBtn:SetText("New Game")
-Threes.newGameBtn:SetSize(80, 27)
-Threes.newGameBtn:SetPoint("BOTTOMLEFT", Threes.frame, "TOPLEFT", 4, 6)
-Threes.newGameBtn:SetScript("OnShow", function (self)
-    self.texture:SetVertexColor(.8, .8, .8)
-end)
-Threes.newGameBtn:SetScript("OnEnter", function (self)
-    self.texture:SetVertexColor(.8, .8, .2)
-end)
-Threes.newGameBtn:SetScript("OnLeave", function (self)
-    self.texture:SetVertexColor(.8, .8, .8)
-end)
-Threes.newGameBtn:SetScript("OnClick", function ( ... )
-    Threes:newGame()
-    inProgress = false
-end)
-
-Threes.scoreText = Threes.frame:CreateFontString(nil, "ARTWORK", "ThreesFontLarge")
-Threes.scoreText:SetPoint("BOTTOM", Threes.frame, "TOP", 0, 6)
-Threes.scoreText:SetVertexColor(.8, .8, .8)
-
-Threes.closeBtn = CreateFrame("Button", nil, Threes.frame, "ThreesButtonTemplate")
-Threes.closeBtn:SetText("Close")
-Threes.closeBtn:SetSize(80, 27)
-Threes.closeBtn:SetPoint("BOTTOMRIGHT", Threes.frame, "TOPRIGHT", -4, 6)
-Threes.closeBtn:SetScript("OnShow", function (self)
-    self.texture:SetVertexColor(.9, 0.3, 0.3)
-end)
-Threes.closeBtn:SetScript("OnEnter", function (self)
-    self.texture:SetVertexColor(.9, 0.5, 0.5)
-end)
-Threes.closeBtn:SetScript("OnLeave", function (self)
-    self.texture:SetVertexColor(.9, 0.3, 0.3)
-end)
-Threes.closeBtn:SetScript("OnClick", function (self)
-    Threes:saveGame()
+----Game Board---
+    Threes.frame = CreateFrame("Frame", nil, UIParent)
+    local frameBG = Threes.frame:CreateTexture(nil, "BACKGROUND")
+    frameBG:SetTexture("Interface\\AddOns\\Threes\\Media\\Frame")
+    frameBG:SetTexCoord(0, 0.6875, 0, 1)
+    frameBG:SetAllPoints(Threes.frame)
+    Threes.frame:SetSize(352, 512)
+    Threes.frame:SetPoint("CENTER")
     Threes.frame:Hide()
-end)
 
-Threes.nextTile = CreateFrame("Button", nil, Threes.frame, "ThreesTileTemplate")
-Threes.nextTile.texture:SetTexture("Interface\\AddOns\\Threes\\Media\\tilePreview")
-Threes.nextTile.texture:SetTexCoord(0, 0.625, 0, 1)
-Threes.nextTile:SetPoint("TOPRIGHT", Threes.frame, "TOPLEFT", -4, -4)
-Threes.nextTile:SetSize(40, 64)
-Threes.nextTile:EnableMouse(false)
-Threes.nextTile.text:Hide()
+    Threes.frame:EnableMouse(true)
+    Threes.frame:SetMovable(true)
+    Threes.frame:RegisterForDrag("LeftButton")
+    Threes.frame:SetScript("OnDragStart", Threes.frame.StartMoving)
+    Threes.frame:SetScript("OnDragStop", Threes.frame.StopMovingOrSizing)
+    Threes.frame:SetScript("OnKeyDown", function (self, key )
+        print(key)
+        if (key == "UP") or (key == "DOWN") or (key == "LEFT") or (key == "RIGHT") then
+            Threes[key]()
+        end
+    end)
+    Threes.frame:SetScript("OnEnter", function (self)
+        self:EnableKeyboard(true)
+    end)
+    Threes.frame:SetScript("OnLeave", function (self)
+        self:EnableKeyboard(false)
+    end)
+    Threes.frame:SetScript("OnShow", function ( self )
+        Threes:newGame()
+    end)
+    Threes.frame:SetScript("OnHide", function ( self )
+        Threes:saveGame()
+    end)
+
+    Threes.statsBtn = CreateFrame("Button", nil, Threes.frame, "ThreesButtonTemplate")
+    Threes.statsBtn:SetText("Stats")
+    Threes.statsBtn:SetSize(80, 27)
+    Threes.statsBtn:SetPoint("BOTTOMLEFT", Threes.frame, "TOPLEFT", 4, 6)
+    Threes.statsBtn:SetScript("OnShow", function (self)
+        self.texture:SetVertexColor(.8, .8, .8)
+    end)
+    Threes.statsBtn:SetScript("OnEnter", function (self)
+        self.texture:SetVertexColor(.8, .8, .2)
+    end)
+    Threes.statsBtn:SetScript("OnLeave", function (self)
+        self.texture:SetVertexColor(.8, .8, .8)
+    end)
+    Threes.statsBtn:SetScript("OnClick", function ( ... )
+        Threes.frame:Hide()
+        Threes.stats:Show()
+    end)
+
+    Threes.closeBtn = CreateFrame("Button", nil, Threes.frame, "ThreesButtonTemplate")
+    Threes.closeBtn:SetText("Close")
+    Threes.closeBtn:SetSize(80, 27)
+    Threes.closeBtn:SetPoint("BOTTOMRIGHT", Threes.frame, "TOPRIGHT", -4, 6)
+    Threes.closeBtn:SetScript("OnShow", function (self)
+        self.texture:SetVertexColor(.9, 0.3, 0.3)
+    end)
+    Threes.closeBtn:SetScript("OnEnter", function (self)
+        self.texture:SetVertexColor(.9, 0.5, 0.5)
+    end)
+    Threes.closeBtn:SetScript("OnLeave", function (self)
+        self.texture:SetVertexColor(.9, 0.3, 0.3)
+    end)
+    Threes.closeBtn:SetScript("OnClick", function (self)
+        Threes.frame:Hide()
+    end)
+
+    Threes.nextTile = CreateFrame("Button", nil, Threes.frame, "ThreesTileTemplate")
+    Threes.nextTile.texture:SetTexture("Interface\\AddOns\\Threes\\Media\\tilePreview")
+    Threes.nextTile.texture:SetTexCoord(0, 0.625, 0, 1)
+    Threes.nextTile:SetPoint("TOPRIGHT", Threes.frame, "TOPLEFT", -4, -4)
+    Threes.nextTile:SetSize(40, 64)
+    Threes.nextTile:EnableMouse(false)
+    Threes.nextTile.text:Hide()
+
+----Stats Frame----
+    Threes.stats = CreateFrame("Frame", nil, UIParent)
+    local frameBG = Threes.stats:CreateTexture(nil, "BACKGROUND")
+    frameBG:SetTexture("Interface\\AddOns\\Threes\\Media\\Frame")
+    frameBG:SetTexCoord(0, 0.6875, 0, 1)
+    frameBG:SetAllPoints(Threes.stats)
+    Threes.stats:Hide()
+
+    Threes.stats:EnableMouse(true)
+    Threes.stats:SetMovable(true)
+    Threes.stats:RegisterForDrag("LeftButton")
+    Threes.stats:SetScript("OnDragStart", Threes.stats.StartMoving)
+    Threes.stats:SetScript("OnDragStop", Threes.stats.StopMovingOrSizing)
+    Threes.stats:SetScript("OnShow", function ( self )
+        Threes.stats:SetAllPoints(Threes.frame)
+    end)
+
+    Threes.backBtn = CreateFrame("Button", nil, Threes.stats, "ThreesButtonTemplate")
+    Threes.backBtn:SetText(BACK)
+    Threes.backBtn:SetSize(80, 27)
+    Threes.backBtn:SetPoint("BOTTOMLEFT", Threes.stats, "TOPLEFT", 4, 6)
+    Threes.backBtn:SetScript("OnShow", function (self)
+        self.texture:SetVertexColor(.8, .8, .8)
+    end)
+    Threes.backBtn:SetScript("OnEnter", function (self)
+        self.texture:SetVertexColor(.8, .8, .2)
+    end)
+    Threes.backBtn:SetScript("OnLeave", function (self)
+        self.texture:SetVertexColor(.8, .8, .8)
+    end)
+    Threes.backBtn:SetScript("OnClick", function ( ... )
+        Threes.stats:Hide()
+        Threes.frame:SetAllPoints(Threes.stats)
+        Threes.frame:Show()
+    end)
+
+    Threes.scoreTxt = Threes.stats:CreateFontString(nil, "ARTWORK", "ThreesFontLarge")
+    Threes.scoreTxt:SetPoint("TOPLEFT", Threes.stats, "TOPLEFT", 20, -15)
+    Threes.scoreTxt:SetVertexColor(.2, .2, .2)
+
+    Threes.scoreMaxTxt = Threes.stats:CreateFontString(nil, "ARTWORK", "ThreesFontLarge")
+    Threes.scoreMaxTxt:SetPoint("TOPLEFT", Threes.stats, "TOPLEFT", 50, -45)
+    Threes.scoreMaxTxt:SetVertexColor(.2, .2, .2)
+
+    Threes.newGameBtn = CreateFrame("Button", nil, Threes.stats, "ThreesButtonTemplate")
+    Threes.newGameBtn:SetText("New Game")
+    Threes.newGameBtn:SetSize(80, 27)
+    Threes.newGameBtn:SetPoint("BOTTOM", Threes.stats, "BOTTOM", 0, 6)
+    Threes.newGameBtn:SetScript("OnShow", function (self)
+        self.texture:SetVertexColor(.8, .8, .8)
+    end)
+    Threes.newGameBtn:SetScript("OnEnter", function (self)
+        self.texture:SetVertexColor(.8, .8, .2)
+    end)
+    Threes.newGameBtn:SetScript("OnLeave", function (self)
+        self.texture:SetVertexColor(.8, .8, .8)
+    end)
+    Threes.newGameBtn:SetScript("OnClick", function ( ... )
+        Threes.stats:Hide()
+        Threes.frame:SetAllPoints(Threes.stats)
+        Threes.frame:Show()
+        Threes:newGame()
+    end)
 
 for row = 1, 4 do
     for col = 1, 4 do
@@ -367,10 +427,16 @@ end
 
 function Threes:calcScore()
     print("calcScore")
+    tileCount = {}
     score = 0
     for i = 1, 16 do
         local rank = self["tile_"..tileMap[i]].rank
         print("stats:", rank, score)
+        if tileCount[rank] then
+            tileCount[rank] = tileCount[rank] + 1
+        else
+            tileCount[rank] = 1
+        end
         if rank > 0 then
             score = score + (3 ^ rank)
         end
@@ -379,7 +445,8 @@ function Threes:calcScore()
         ThreesDB.scoreMax = score
     end
 
-    Threes.scoreText:SetText(score)
+    Threes.scoreTxt:SetText("Current Score: "..score)
+    Threes.scoreMaxTxt:SetText("Highest Score: "..ThreesDB.scoreMax)
 end
 
 function Threes:clear()
