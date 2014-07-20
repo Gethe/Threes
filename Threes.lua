@@ -46,7 +46,7 @@ local tileMap = {
     Threes.frame:RegisterForDrag("LeftButton")
     Threes.frame:SetScript("OnDragStart", Threes.frame.StartMoving)
     Threes.frame:SetScript("OnDragStop", Threes.frame.StopMovingOrSizing)
-    Threes.frame:SetScript("OnKeyDown", function (self, key )
+    Threes.frame:SetScript("OnKeyDown", function (self, key)
         print(key)
         if (key == "UP") or (key == "DOWN") or (key == "LEFT") or (key == "RIGHT") then
             Threes[key]()
